@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, test } from "vitest";
@@ -10,6 +10,7 @@ import {
   readChatMetadataList,
   readCliConfig,
   writeChatMetadata,
+  writeCliConfig,
 } from "@/services/fileStorage";
 import type { ChatMessage, ChatMetadata } from "@/types";
 
@@ -79,6 +80,100 @@ describe("fileStorage", () => {
         maxTokens: 1025,
       },
       errors: [],
+    });
+  });
+
+  test("readCliConfig parses valid system prompts and drops blank entries", async () => {
+    const rootDir = await makeRootDir();
+    const paths = await ensureDataDirs(rootDir);
+    await writeFile(
+      paths.configPath,
+      JSON.stringify({
+        baseUrl: "https://api.example.com/v1",
+        apiKey: "secret-key",
+        model: "example-model",
+        systemPrompts: ["  first prompt  ", "   ", "second\nline"],
+      }),
+    );
+
+    const result = await readCliConfig(rootDir);
+
+    expect(result).toEqual({
+      config: {
+        baseUrl: "https://api.example.com/v1",
+        apiKey: "secret-key",
+        model: "example-model",
+        systemPrompts: ["  first prompt  ", "second\nline"],
+      },
+      errors: [],
+    });
+  });
+
+  test("readCliConfig ignores malformed and all-blank system prompts", async () => {
+    const rootDir = await makeRootDir();
+    const paths = await ensureDataDirs(rootDir);
+    await writeFile(
+      paths.configPath,
+      JSON.stringify({
+        baseUrl: "https://api.example.com/v1",
+        apiKey: "secret-key",
+        model: "example-model",
+        systemPrompts: ["", "   ", 42, null],
+      }),
+    );
+
+    const result = await readCliConfig(rootDir);
+
+    expect(result).toEqual({
+      config: {
+        baseUrl: "https://api.example.com/v1",
+        apiKey: "secret-key",
+        model: "example-model",
+      },
+      errors: [],
+    });
+  });
+
+  test("writeCliConfig writes stable config JSON with system prompts", async () => {
+    const rootDir = await makeRootDir();
+
+    await writeCliConfig(rootDir, {
+      baseUrl: "https://api.example.com/v1",
+      apiKey: "secret-key",
+      model: "example-model",
+      maxTokens: 2048,
+      systemPrompts: ["first", "second\nline"],
+    });
+
+    const raw = await readFile(join(rootDir, ".yunwu", "config.json"), "utf8");
+    expect(raw).toBe(`{
+  "baseUrl": "https://api.example.com/v1",
+  "apiKey": "secret-key",
+  "model": "example-model",
+  "maxTokens": 2048,
+  "systemPrompts": [
+    "first",
+    "second\\nline"
+  ]
+}
+`);
+  });
+
+  test("writeCliConfig removes system prompts when only blank prompts remain", async () => {
+    const rootDir = await makeRootDir();
+
+    await writeCliConfig(rootDir, {
+      baseUrl: "https://api.example.com/v1",
+      apiKey: "secret-key",
+      model: "example-model",
+      systemPrompts: ["", "   "],
+    });
+
+    const parsed = JSON.parse(await readFile(join(rootDir, ".yunwu", "config.json"), "utf8"));
+    expect(parsed).toEqual({
+      baseUrl: "https://api.example.com/v1",
+      apiKey: "secret-key",
+      model: "example-model",
     });
   });
 

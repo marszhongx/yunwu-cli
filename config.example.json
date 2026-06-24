@@ -9,5 +9,11 @@
       "baseUrl": "",
       "model": "gpt-4o"
     }
+  ],
+  "baseUrl": "https://api.example.com/v1",
+  "apiKey": "sk-your-api-key",
+  "model": "gpt-4o",
+  "systemPrompts": [
+    "Optional custom system prompt. Use /system in the TUI to edit this list."
   ]
 }

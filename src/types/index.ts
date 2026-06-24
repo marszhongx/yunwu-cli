@@ -3,6 +3,7 @@ export type CliConfig = {
   apiKey: string;
   model: string;
   maxTokens?: number;
+  systemPrompts?: string[];
 };
 
 export type CliMessageRole = "user" | "assistant";

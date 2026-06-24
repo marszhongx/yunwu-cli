@@ -65,6 +65,25 @@ export async function readCliConfig(
   }
 }
 
+export async function writeCliConfig(rootDir: string, config: CliConfig): Promise<void> {
+  const paths = await ensureDataDirs(rootDir);
+  const serialized: CliConfig = {
+    baseUrl: config.baseUrl,
+    apiKey: config.apiKey,
+    model: config.model,
+  };
+  if (typeof config.maxTokens === "number") {
+    serialized.maxTokens = config.maxTokens;
+  }
+
+  const systemPrompts = nonBlankStringArrayValue(config.systemPrompts);
+  if (systemPrompts.length > 0) {
+    serialized.systemPrompts = systemPrompts;
+  }
+
+  await writeFile(paths.configPath, `${JSON.stringify(serialized, null, 2)}\n`);
+}
+
 export async function readCharacters(
   rootDir: string,
 ): Promise<{ characters: ListedCharacter[]; warnings: string[] }> {
@@ -207,6 +226,12 @@ function normalizeCliConfig(value: unknown): CliConfig | null {
   ) {
     config.maxTokens = Math.round(value.maxTokens);
   }
+
+  const systemPrompts = nonBlankStringArrayValue(value.systemPrompts);
+  if (systemPrompts.length > 0) {
+    config.systemPrompts = systemPrompts;
+  }
+
   return config;
 }
 
@@ -311,6 +336,13 @@ function stringArrayValue(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
     : [];
+}
+
+function nonBlankStringArrayValue(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((item): item is string => typeof item === "string" && item.trim() !== "");
 }
 
 export function safeChatFileName(chatId: string, ext: "json" | "jsonl"): string {
