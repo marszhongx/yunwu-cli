@@ -121,6 +121,7 @@ export async function sendChatMessage({
       messages: withUser,
       charData: character,
       lbEntries: character.entries.filter((entry) => entry.enabled).map((entry) => entry.content),
+      systemPrompts: config.systemPrompts,
     }),
     onText: onAssistantText,
   });

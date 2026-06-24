@@ -203,6 +203,41 @@ describe("chat runtime", () => {
     expect(metadata.updatedAt).toBe("2026-06-23T08:10:11.000Z");
   });
 
+  it("sendChatMessage uses custom system prompts from config", async () => {
+    const rootDir = await makeTempDir();
+    const created = await createNewChat({
+      rootDir,
+      character,
+      now: () => new Date("2026-06-23T08:09:10.000Z"),
+    });
+    const provider = vi.fn(async () => ({ text: "Assistant response" }));
+
+    await sendChatMessage({
+      rootDir,
+      config: { ...config, systemPrompts: ["custom first", "custom second"] },
+      character,
+      chat: created.chat,
+      messages: created.messages,
+      content: "I enter the station.",
+      now: () => new Date("2026-06-23T08:10:11.000Z"),
+      requestProvider: provider,
+    });
+
+    expect(provider).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: expect.arrayContaining([
+          { role: "system", content: "custom first" },
+          { role: "system", content: "custom second" },
+        ]),
+      }),
+    );
+    const messages = provider.mock.calls[0]?.[0].messages ?? [];
+    expect(messages.slice(0, 2)).toEqual([
+      { role: "system", content: "custom first" },
+      { role: "system", content: "custom second" },
+    ]);
+  });
+
   it("sendChatMessage preserves the user message on disk when provider fails", async () => {
     const rootDir = await makeTempDir();
     const chat: ChatMetadata = {
