@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.claude/
+.env
+.worktrees/
+.omo/
+docs/plans/
+docs/superpowers/
+examples/
+.yunwu/
+.superpowers/
