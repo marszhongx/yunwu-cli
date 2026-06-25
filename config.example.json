@@ -1,18 +1,8 @@
 {
-  "activeProviderId": "",
-  "providers": [
-    {
-      "id": "your-uuid-here",
-      "name": "My Provider",
-      "provider": "openai",
-      "apiKey": "sk-your-api-key",
-      "baseUrl": "",
-      "model": "gpt-4o"
-    }
-  ],
   "baseUrl": "https://api.example.com/v1",
   "apiKey": "sk-your-api-key",
   "model": "gpt-4o",
+  "maxTokens": 2048,
   "systemPrompts": [
     "Optional additional system prompt. Built-in prompts still apply first."
   ]
