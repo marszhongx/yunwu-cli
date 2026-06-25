@@ -18,9 +18,12 @@ export function buildMessages({
   messages = [],
   charData = null,
   lbEntries = [],
-  systemPrompts = DEFAULT_SYSTEM_PROMPTS,
+  systemPrompts = [],
 }: BuildMessagesOptions = {}): PromptMessage[] {
-  const prompts = systemPrompts.length > 0 ? systemPrompts : DEFAULT_SYSTEM_PROMPTS;
+  const prompts = [
+    ...DEFAULT_SYSTEM_PROMPTS,
+    ...systemPrompts.filter((content) => content.trim() !== ""),
+  ];
   const result: PromptMessage[] = prompts.map((content) => ({ role: "system", content }));
 
   if (charData?.description) {

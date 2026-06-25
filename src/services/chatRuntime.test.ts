@@ -203,7 +203,7 @@ describe("chat runtime", () => {
     expect(metadata.updatedAt).toBe("2026-06-23T08:10:11.000Z");
   });
 
-  it("sendChatMessage uses custom system prompts from config", async () => {
+  it("sendChatMessage appends custom system prompts after default prompts", async () => {
     const rootDir = await makeTempDir();
     const created = await createNewChat({
       rootDir,
@@ -223,16 +223,12 @@ describe("chat runtime", () => {
       requestProvider: provider,
     });
 
-    expect(provider).toHaveBeenCalledWith(
-      expect.objectContaining({
-        messages: expect.arrayContaining([
-          { role: "system", content: "custom first" },
-          { role: "system", content: "custom second" },
-        ]),
-      }),
-    );
     const messages = provider.mock.calls[0]?.[0].messages ?? [];
     expect(messages.slice(0, 2)).toEqual([
+      expect.objectContaining({ role: "system" }),
+      expect.objectContaining({ role: "system" }),
+    ]);
+    expect(messages.slice(2, 4)).toEqual([
       { role: "system", content: "custom first" },
       { role: "system", content: "custom second" },
     ]);

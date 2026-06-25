@@ -56,8 +56,13 @@ describe("messages domain", () => {
     ]);
   });
 
-  it("uses custom system prompts when provided", () => {
-    expect(buildMessages({ systemPrompts: ["第一条", "第二条"] }).slice(0, 2)).toEqual([
+  it("appends custom system prompts after default system prompts", () => {
+    const result = buildMessages({ systemPrompts: ["第一条", "第二条"] });
+
+    expect(result.slice(0, DEFAULT_SYSTEM_PROMPTS.length)).toEqual(
+      DEFAULT_SYSTEM_PROMPTS.map((content) => ({ role: "system", content })),
+    );
+    expect(result.slice(DEFAULT_SYSTEM_PROMPTS.length, DEFAULT_SYSTEM_PROMPTS.length + 2)).toEqual([
       { role: "system", content: "第一条" },
       { role: "system", content: "第二条" },
     ]);
@@ -65,6 +70,12 @@ describe("messages domain", () => {
 
   it("falls back to default system prompts", () => {
     expect(buildMessages().slice(0, DEFAULT_SYSTEM_PROMPTS.length)).toEqual(
+      DEFAULT_SYSTEM_PROMPTS.map((content) => ({ role: "system", content })),
+    );
+  });
+
+  it("uses only default system prompts when custom prompts are empty", () => {
+    expect(buildMessages({ systemPrompts: [] })).toEqual(
       DEFAULT_SYSTEM_PROMPTS.map((content) => ({ role: "system", content })),
     );
   });
