@@ -268,7 +268,6 @@ export default function App({
       return;
     }
 
-
     if (command === "/help") {
       const helpMessage = "Commands: /new creates a chat, /resume opens saved chats, /exit quits.";
       setError("");
@@ -329,7 +328,6 @@ export default function App({
       setMode("chat");
     }
   }
-
 
   return (
     <Box flexDirection="column">
