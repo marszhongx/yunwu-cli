@@ -113,6 +113,8 @@ The TUI uses `@tanstack/ai` with the OpenAI-compatible adapter (`@tanstack/ai-op
 
 The default system prompt instructs the AI to respond in structured XML tags: `<content>` for the visible reply, `<summary>` for memory compression of older messages, and `<choices>` for suggested user actions.
 
+You can add global prompt guidance by setting `systemPrompts` in `.yunwu/config.json`. These prompts are appended after the built-in system prompts; they do not replace or disable the built-in narrator and response-format instructions.
+
 ## Development
 
 ```bash
