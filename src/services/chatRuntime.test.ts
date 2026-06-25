@@ -4,7 +4,12 @@ import { tmpdir } from "node:os";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createNewChat, resumeChat, sendChatMessage } from "@/services/chatRuntime";
+import {
+  createNewChat,
+  resumeChat,
+  sendChatMessage,
+  type ProviderRequester,
+} from "@/services/chatRuntime";
 import {
   appendChatMessage,
   dataPaths,
@@ -210,7 +215,7 @@ describe("chat runtime", () => {
       character,
       now: () => new Date("2026-06-23T08:09:10.000Z"),
     });
-    const provider = vi.fn(async () => ({ text: "Assistant response" }));
+    const provider = vi.fn<ProviderRequester>(async () => ({ text: "Assistant response" }));
 
     await sendChatMessage({
       rootDir,
@@ -223,12 +228,13 @@ describe("chat runtime", () => {
       requestProvider: provider,
     });
 
-    const messages = provider.mock.calls[0]?.[0].messages ?? [];
-    expect(messages.slice(0, 2)).toEqual([
+    expect(provider).toHaveBeenCalledTimes(1);
+    const [input] = provider.mock.calls[0];
+    expect(input.messages.slice(0, 2)).toEqual([
       expect.objectContaining({ role: "system" }),
       expect.objectContaining({ role: "system" }),
     ]);
-    expect(messages.slice(2, 4)).toEqual([
+    expect(input.messages.slice(2, 4)).toEqual([
       { role: "system", content: "custom first" },
       { role: "system", content: "custom second" },
     ]);

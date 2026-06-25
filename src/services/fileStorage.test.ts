@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, test } from "vitest";
@@ -10,7 +10,6 @@ import {
   readChatMetadataList,
   readCliConfig,
   writeChatMetadata,
-  writeCliConfig,
 } from "@/services/fileStorage";
 import type { ChatMessage, ChatMetadata } from "@/types";
 
@@ -131,49 +130,6 @@ describe("fileStorage", () => {
         model: "example-model",
       },
       errors: [],
-    });
-  });
-
-  test("writeCliConfig writes stable config JSON with system prompts", async () => {
-    const rootDir = await makeRootDir();
-
-    await writeCliConfig(rootDir, {
-      baseUrl: "https://api.example.com/v1",
-      apiKey: "secret-key",
-      model: "example-model",
-      maxTokens: 2048,
-      systemPrompts: ["first", "second\nline"],
-    });
-
-    const raw = await readFile(join(rootDir, ".yunwu", "config.json"), "utf8");
-    expect(raw).toBe(`{
-  "baseUrl": "https://api.example.com/v1",
-  "apiKey": "secret-key",
-  "model": "example-model",
-  "maxTokens": 2048,
-  "systemPrompts": [
-    "first",
-    "second\\nline"
-  ]
-}
-`);
-  });
-
-  test("writeCliConfig removes system prompts when only blank prompts remain", async () => {
-    const rootDir = await makeRootDir();
-
-    await writeCliConfig(rootDir, {
-      baseUrl: "https://api.example.com/v1",
-      apiKey: "secret-key",
-      model: "example-model",
-      systemPrompts: ["", "   "],
-    });
-
-    const parsed = JSON.parse(await readFile(join(rootDir, ".yunwu", "config.json"), "utf8"));
-    expect(parsed).toEqual({
-      baseUrl: "https://api.example.com/v1",
-      apiKey: "secret-key",
-      model: "example-model",
     });
   });
 

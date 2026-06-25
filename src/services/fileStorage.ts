@@ -65,25 +65,6 @@ export async function readCliConfig(
   }
 }
 
-export async function writeCliConfig(rootDir: string, config: CliConfig): Promise<void> {
-  const paths = await ensureDataDirs(rootDir);
-  const serialized: CliConfig = {
-    baseUrl: config.baseUrl,
-    apiKey: config.apiKey,
-    model: config.model,
-  };
-  if (typeof config.maxTokens === "number") {
-    serialized.maxTokens = config.maxTokens;
-  }
-
-  const systemPrompts = nonBlankStringArrayValue(config.systemPrompts);
-  if (systemPrompts.length > 0) {
-    serialized.systemPrompts = systemPrompts;
-  }
-
-  await writeFile(paths.configPath, `${JSON.stringify(serialized, null, 2)}\n`);
-}
-
 export async function readCharacters(
   rootDir: string,
 ): Promise<{ characters: ListedCharacter[]; warnings: string[] }> {
