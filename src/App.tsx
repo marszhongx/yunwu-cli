@@ -5,21 +5,18 @@ import { Box, Text, useApp, useInput } from "ink";
 import { CharacterSelect } from "@/components/CharacterSelect";
 import { ChatScreen } from "@/components/ChatScreen";
 import { ChatSelect } from "@/components/ChatSelect";
-import { SystemPromptEditor } from "@/components/SystemPromptEditor";
-import { DEFAULT_SYSTEM_PROMPTS } from "@/constants";
 import { uuid } from "@/lib/ids";
 import { parseMessage } from "@/lib/messages";
 import {
   readCharacters,
   readChatMetadataList,
   readCliConfig,
-  writeCliConfig,
   type ListedCharacter,
   type ListedChat,
 } from "@/services/fileStorage";
 import type { ChatMessage, ChatMetadata, CharacterCard, CliConfig } from "@/types";
 
-type Mode = "chat" | "character-select" | "chat-select" | "system-edit";
+type Mode = "chat" | "character-select" | "chat-select";
 
 export type AppProps = {
   rootDir: string;
@@ -271,15 +268,6 @@ export default function App({
       return;
     }
 
-    if (command === "/system") {
-      if (!config) {
-        setError("Configure .yunwu/config.json before editing system prompts.");
-        return;
-      }
-      setError("");
-      setMode("system-edit");
-      return;
-    }
 
     if (command === "/help") {
       const helpMessage = "Commands: /new creates a chat, /resume opens saved chats, /exit quits.";
@@ -342,20 +330,6 @@ export default function App({
     }
   }
 
-  async function saveSystemPrompts(prompts: string[]) {
-    if (!config) {
-      throw new Error("Configure .yunwu/config.json before editing system prompts.");
-    }
-    const cleanPrompts = prompts.filter((prompt) => prompt.trim() !== "");
-    const nextConfig: CliConfig = { ...config };
-    if (cleanPrompts.length > 0) {
-      nextConfig.systemPrompts = cleanPrompts;
-    } else {
-      delete nextConfig.systemPrompts;
-    }
-    await writeCliConfig(rootDir, nextConfig);
-    setConfig(nextConfig);
-  }
 
   return (
     <Box flexDirection="column">
@@ -364,14 +338,6 @@ export default function App({
       ) : null}
       {mode === "chat-select" ? (
         <ChatSelect chats={chats} onSelect={(item) => void selectChat(item)} />
-      ) : null}
-      {mode === "system-edit" && config ? (
-        <SystemPromptEditor
-          initialPrompts={config.systemPrompts ?? DEFAULT_SYSTEM_PROMPTS}
-          defaultPrompts={DEFAULT_SYSTEM_PROMPTS}
-          onSave={saveSystemPrompts}
-          onExit={() => setMode("chat")}
-        />
       ) : null}
       {mode === "chat" ? (
         <ChatScreen
@@ -389,9 +355,7 @@ export default function App({
           activeChoiceIndex={activeChoiceIndex}
         />
       ) : null}
-      {mode === "character-select" || mode === "chat-select" ? (
-        <Text dimColor>Use arrow keys and Enter to choose.</Text>
-      ) : null}
+      {mode !== "chat" ? <Text dimColor>Use arrow keys and Enter to choose.</Text> : null}
     </Box>
   );
 }

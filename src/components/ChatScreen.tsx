@@ -101,7 +101,7 @@ export function ChatScreen({
         <TextInput value={input} onChange={onInputChange} focus={inputEnabled} />
       </Box>
 
-      <Text dimColor>Commands: /new, /resume, /system, /help, /exit</Text>
+      <Text dimColor>Commands: /new, /resume, /help, /exit</Text>
     </Box>
   );
 }

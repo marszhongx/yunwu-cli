@@ -2,7 +2,7 @@ import { render } from "ink-testing-library";
 import { beforeEach, expect, test, vi } from "vitest";
 
 import App from "@/App";
-import { readCharacters, readChatMetadataList, readCliConfig, writeCliConfig } from "@/services/fileStorage";
+import { readCharacters, readChatMetadataList, readCliConfig } from "@/services/fileStorage";
 import { createNewChat, resumeChat, sendChatMessage } from "@/services/chatRuntime";
 import type { CharacterCard, ChatMessage, ChatMetadata, CliConfig } from "@/types";
 
@@ -13,7 +13,6 @@ vi.mock("@/services/fileStorage", async (importOriginal) => {
     readCharacters: vi.fn(),
     readChatMetadataList: vi.fn(),
     readCliConfig: vi.fn(),
-    writeCliConfig: vi.fn(),
   };
 });
 
@@ -26,7 +25,6 @@ vi.mock("@/services/chatRuntime", () => ({
 const readCharactersMock = vi.mocked(readCharacters);
 const readChatMetadataListMock = vi.mocked(readChatMetadataList);
 const readCliConfigMock = vi.mocked(readCliConfig);
-const writeCliConfigMock = vi.mocked(writeCliConfig);
 const createNewChatMock = vi.mocked(createNewChat);
 const resumeChatMock = vi.mocked(resumeChat);
 const sendChatMessageMock = vi.mocked(sendChatMessage);
@@ -34,7 +32,6 @@ const sendChatMessageMock = vi.mocked(sendChatMessage);
 beforeEach(() => {
   vi.clearAllMocks();
   readCliConfigMock.mockResolvedValue({ config: config(), errors: [] });
-  writeCliConfigMock.mockResolvedValue(undefined);
   readCharactersMock.mockResolvedValue({ characters: [], warnings: [] });
   readChatMetadataListMock.mockResolvedValue({ chats: [], warnings: [] });
   createNewChatMock.mockResolvedValue(runtimeState());
@@ -362,6 +359,25 @@ test("/help shows command help without duplicating warning text", async () => {
   await vi.waitFor(() => expect(commandHelpCount(lastFrame())).toBe(1));
 });
 
+test("/system is reported as an unknown command", async () => {
+  const { lastFrame, stdin } = render(
+    <App
+      rootDir="/tmp/yunwu-test"
+      initialConfig={config({ systemPrompts: ["custom prompt"] })}
+      initialConfigErrors={[]}
+      initialCharacters={[]}
+      initialChats={[]}
+    />,
+  );
+
+  stdin.write("/system");
+  await vi.waitFor(() => expect(lastFrame()).toContain("> /system"));
+  stdin.write("\r");
+
+  await vi.waitFor(() => expect(lastFrame()).toContain("Unknown command: /system"));
+  expect(lastFrame()).not.toContain("System Prompts");
+});
+
 test("assistant XML choices render without raw tags and can be selected with arrow keys", async () => {
   sendChatMessageMock.mockReturnValue(new Promise(() => {}));
   createNewChatMock.mockResolvedValue(
@@ -407,102 +423,6 @@ test("assistant XML choices render without raw tags and can be selected with arr
   expect(lastFrame()).not.toContain("  A: 选择一");
   expect(sendChatMessageMock).toHaveBeenCalledWith(
     expect.objectContaining({ content: "B: 选择二" }),
-  );
-});
-
-test("/system opens the system prompt editor when config exists", async () => {
-  const { lastFrame, stdin } = render(
-    <App
-      rootDir="/tmp/yunwu-test"
-      initialConfig={config({ systemPrompts: ["custom prompt"] })}
-      initialConfigErrors={[]}
-      initialCharacters={[]}
-      initialChats={[]}
-    />,
-  );
-
-  stdin.write("/system");
-  await vi.waitFor(() => expect(lastFrame()).toContain("> /system"));
-  stdin.write("\r");
-
-  await vi.waitFor(() => expect(lastFrame()).toContain("System Prompts"));
-  expect(lastFrame()).toContain("> 1. custom prompt");
-});
-
-test("/system shows an error when config is missing", async () => {
-  const { lastFrame, stdin } = render(
-    <App
-      rootDir="/tmp/yunwu-test"
-      initialConfig={null}
-      initialConfigErrors={["Missing config: .yunwu/config.json"]}
-      initialCharacters={[]}
-      initialChats={[]}
-    />,
-  );
-
-  stdin.write("/system");
-  await vi.waitFor(() => expect(lastFrame()).toContain("> /system"));
-  stdin.write("\r");
-
-  await vi.waitFor(() =>
-    expect(lastFrame()).toContain("Configure .yunwu/config.json before editing system prompts."),
-  );
-  expect(lastFrame()).not.toContain("System Prompts");
-});
-
-test("saving system prompts writes config and later sends use updated prompts", async () => {
-  const initialConfig = config();
-  const { lastFrame, stdin } = render(
-    <App
-      rootDir="/tmp/yunwu-test"
-      initialConfig={initialConfig}
-      initialConfigErrors={[]}
-      initialCharacters={[listedCharacter()]}
-      initialChats={[]}
-    />,
-  );
-
-  stdin.write("/system");
-  await vi.waitFor(() => expect(lastFrame()).toContain("> /system"));
-  stdin.write("\r");
-  await vi.waitFor(() => expect(lastFrame()).toContain("System Prompts"));
-
-  stdin.write("a");
-  await vi.waitFor(() => expect(lastFrame()).toContain("Add system prompt"));
-  stdin.write("new\\nrule");
-  stdin.write("\r");
-  await vi.waitFor(() => expect(lastFrame()).toContain("new\\nrule"));
-  stdin.write("s");
-
-  await vi.waitFor(() =>
-    expect(writeCliConfigMock).toHaveBeenCalledWith("/tmp/yunwu-test", {
-      ...initialConfig,
-      systemPrompts: expect.arrayContaining(["new\nrule"]),
-    }),
-  );
-
-  stdin.write("");
-  await vi.waitFor(() => expect(lastFrame()).toContain("No active chat"));
-
-  stdin.write("/new");
-  await vi.waitFor(() => expect(lastFrame()).toContain("> /new"));
-  stdin.write("\r");
-  await vi.waitFor(() => expect(lastFrame()).toContain("Select a character"));
-  stdin.write("\r");
-  await vi.waitFor(() => expect(lastFrame()).toContain("Character: 云雀"));
-
-  stdin.write("hello");
-  await vi.waitFor(() => expect(lastFrame()).toContain("> hello"));
-  stdin.write("\r");
-
-  await vi.waitFor(() =>
-    expect(sendChatMessageMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        config: expect.objectContaining({
-          systemPrompts: expect.arrayContaining(["new\nrule"]),
-        }),
-      }),
-    ),
   );
 });
 
