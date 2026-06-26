@@ -3,7 +3,7 @@ import { render } from "ink-testing-library";
 import { afterEach, expect, test, vi } from "vitest";
 
 import { ChatScreen } from "@/components/ChatScreen";
-import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -150,7 +150,7 @@ function chat(): ChatMetadata {
   };
 }
 
-function character(): StandardCharacterCard {
+function character(): StandardCard {
   return {
     spec: "chara_card_v2",
     data: {

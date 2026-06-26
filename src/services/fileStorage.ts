@@ -1,12 +1,12 @@
 import { appendFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
-import { normalizeStandardCharacterCard } from "@/lib/characterCards";
-import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
+import { normalizeStandardCard } from "@/lib/characterCards";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 export type ListedCharacter = {
   id: string;
   fileName: string;
-  character: StandardCharacterCard;
+  character: StandardCard;
 };
 
 export type ListedChat = {
@@ -82,7 +82,7 @@ export async function readCharacters(
       const parsed: unknown = JSON.parse(
         await readFile(join(paths.charactersDir, fileName), "utf8"),
       );
-      const character = normalizeStandardCharacterCard(parsed);
+      const character = normalizeStandardCard(parsed);
       if (character === null) {
         warnings.push(`Skipped ${fileName}: unsupported character card format`);
         continue;

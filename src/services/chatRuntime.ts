@@ -17,7 +17,7 @@ import {
   safeChatFileName,
   writeChatMetadata,
 } from "@/services/fileStorage";
-import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 export type RuntimeState = {
   chat: ChatMetadata;
@@ -36,7 +36,7 @@ type Clock = () => Date;
 type CreateNewChatInput = {
   rootDir: string;
   characterId: string;
-  character: StandardCharacterCard;
+  character: StandardCard;
   now?: Clock;
 };
 
@@ -48,7 +48,7 @@ type ResumeChatInput = {
 type SendChatMessageInput = {
   rootDir: string;
   config: CliConfig;
-  character: StandardCharacterCard;
+  character: StandardCard;
   chat: ChatMetadata;
   messages: ChatMessage[];
   content: string;

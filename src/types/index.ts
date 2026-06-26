@@ -15,8 +15,6 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export type CharacterCardSpec = "chara_card_v2" | "chara_card_v3";
-
 export type CharacterBookEntry = {
   keys?: unknown;
   key?: unknown;
@@ -72,7 +70,7 @@ export type CharaCardV3 = {
   data: CharaCardData;
 };
 
-export type StandardCharacterCard = CharaCardV2 | CharaCardV3;
+export type StandardCard = CharaCardV2 | CharaCardV3;
 
 export type CharacterPromptParts = string[];
 

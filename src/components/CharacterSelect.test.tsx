@@ -3,7 +3,7 @@ import { expect, test, vi } from "vitest";
 
 import { CharacterSelect } from "@/components/CharacterSelect";
 import type { ListedCharacter } from "@/services/fileStorage";
-import type { StandardCharacterCard } from "@/types";
+import type { StandardCard } from "@/types";
 
 test("renders standard character card names from card data", () => {
   const { lastFrame } = render(
@@ -22,7 +22,7 @@ function listedCharacter(): ListedCharacter {
   };
 }
 
-function character(): StandardCharacterCard {
+function character(): StandardCard {
   return {
     spec: "chara_card_v2",
     data: {

@@ -12,7 +12,7 @@ import {
   readChatMessages,
   writeChatMetadata,
 } from "@/services/fileStorage";
-import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 const tempDirs: string[] = [];
 
@@ -27,7 +27,7 @@ afterEach(async () => {
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
-const character: StandardCharacterCard = {
+const character: StandardCard = {
   spec: "chara_card_v2",
   spec_version: "2.0",
   data: {

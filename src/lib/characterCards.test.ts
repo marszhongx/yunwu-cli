@@ -4,25 +4,25 @@ import {
   getCharacterFirstMessage,
   getCharacterName,
   getOpeningUserChoices,
-  isStandardCharacterCard,
-  normalizeStandardCharacterCard,
+  isStandardCard,
+  normalizeStandardCard,
 } from "@/lib/characterCards";
-import type { StandardCharacterCard } from "@/types";
+import type { StandardCard } from "@/types";
 
 describe("standard character cards", () => {
   test("recognizes v2 and v3 cards with data.name", () => {
-    expect(isStandardCharacterCard(v2Card())).toBe(true);
-    expect(isStandardCharacterCard(v3Card())).toBe(true);
-    expect(isStandardCharacterCard({ spec: "chara_card_v2", data: { name: "   " } })).toBe(false);
-    expect(isStandardCharacterCard({ name: "legacy" })).toBe(false);
+    expect(isStandardCard(v2Card())).toBe(true);
+    expect(isStandardCard(v3Card())).toBe(true);
+    expect(isStandardCard({ spec: "chara_card_v2", data: { name: "   " } })).toBe(false);
+    expect(isStandardCard({ name: "legacy" })).toBe(false);
   });
 
   test("normalizes only supported cards and preserves card shape", () => {
     const card = v2Card();
 
-    expect(normalizeStandardCharacterCard(card)).toBe(card);
-    expect(normalizeStandardCharacterCard({ spec: "chara_card_v1", data: { name: "Old" } })).toBeNull();
-    expect(normalizeStandardCharacterCard({ name: "Legacy" })).toBeNull();
+    expect(normalizeStandardCard(card)).toBe(card);
+    expect(normalizeStandardCard({ spec: "chara_card_v1", data: { name: "Old" } })).toBeNull();
+    expect(normalizeStandardCard({ name: "Legacy" })).toBeNull();
   });
 
   test("reads names and first messages from data", () => {
@@ -38,7 +38,9 @@ describe("standard character cards", () => {
   });
 
   test("builds prompt parts in standard order", () => {
-    expect(buildCharacterPromptParts(v2Card(), { messages: [{ role: "user", content: "station" }] })).toEqual([
+    expect(
+      buildCharacterPromptParts(v2Card(), { messages: [{ role: "user", content: "station" }] }),
+    ).toEqual([
       "Keep the narration eerie.",
       "A guide from the fogbound city.",
       "Careful and curious.",
@@ -80,18 +82,18 @@ describe("standard character cards", () => {
       },
     });
 
-    expect(buildCharacterPromptParts(card, { messages: [{ role: "user", content: "station moon" }] })).toContain(
-      "Station plus moon.",
-    );
-    expect(buildCharacterPromptParts(card, { messages: [{ role: "user", content: "station moon" }] })).not.toContain(
-      "Case-sensitive station.",
-    );
-    expect(buildCharacterPromptParts(card, { messages: [{ role: "user", content: "Station moon" }] })).toContain(
-      "Case-sensitive station.",
-    );
-    expect(buildCharacterPromptParts(card, { messages: [{ role: "user", content: "station" }] })).not.toContain(
-      "Station plus moon.",
-    );
+    expect(
+      buildCharacterPromptParts(card, { messages: [{ role: "user", content: "station moon" }] }),
+    ).toContain("Station plus moon.");
+    expect(
+      buildCharacterPromptParts(card, { messages: [{ role: "user", content: "station moon" }] }),
+    ).not.toContain("Case-sensitive station.");
+    expect(
+      buildCharacterPromptParts(card, { messages: [{ role: "user", content: "Station moon" }] }),
+    ).toContain("Case-sensitive station.");
+    expect(
+      buildCharacterPromptParts(card, { messages: [{ role: "user", content: "station" }] }),
+    ).not.toContain("Station plus moon.");
   });
 
   test("sorts matched lorebook entries by priority descending then insertion_order ascending", () => {
@@ -120,7 +122,7 @@ describe("standard character cards", () => {
   });
 });
 
-function v2Card(data: Record<string, unknown> = {}): StandardCharacterCard {
+function v2Card(data: Record<string, unknown> = {}): StandardCard {
   return {
     spec: "chara_card_v2",
     spec_version: "2.0",
@@ -145,7 +147,7 @@ function v2Card(data: Record<string, unknown> = {}): StandardCharacterCard {
   };
 }
 
-function v3Card(): StandardCharacterCard {
+function v3Card(): StandardCard {
   return {
     spec: "chara_card_v3",
     spec_version: "3.0",

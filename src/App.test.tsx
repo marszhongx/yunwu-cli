@@ -4,7 +4,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import App from "@/App";
 import { readCharacters, readChatMetadataList, readCliConfig } from "@/services/fileStorage";
 import { createNewChat, resumeChat, sendChatMessage } from "@/services/chatRuntime";
-import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 vi.mock("@/services/fileStorage", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/fileStorage")>();
@@ -415,7 +415,7 @@ function config(): CliConfig {
   };
 }
 
-function listedCharacter(overrides: Partial<StandardCharacterCard["data"]> = {}) {
+function listedCharacter(overrides: Partial<StandardCard["data"]> = {}) {
   return {
     id: "char-1",
     fileName: "char-1.json",
@@ -438,7 +438,7 @@ function listedChat(overrides: Partial<ChatMetadata> = {}) {
   };
 }
 
-function character(overrides: Partial<StandardCharacterCard["data"]> = {}): StandardCharacterCard {
+function character(overrides: Partial<StandardCard["data"]> = {}): StandardCard {
   return {
     spec: "chara_card_v2",
     data: {

@@ -1,4 +1,4 @@
-import type { CharacterPromptParts, ChatMessage, StandardCharacterCard } from "@/types";
+import type { CharacterPromptParts, ChatMessage, StandardCard } from "@/types";
 
 type PromptContext = {
   messages?: Pick<ChatMessage, "role" | "content">[];
@@ -16,27 +16,27 @@ type NormalizedBookEntry = {
   insertionOrder: number;
 };
 
-export function isStandardCharacterCard(value: unknown): value is StandardCharacterCard {
-  return normalizeStandardCharacterCard(value) !== null;
+export function isStandardCard(value: unknown): value is StandardCard {
+  return normalizeStandardCard(value) !== null;
 }
 
-export function normalizeStandardCharacterCard(value: unknown): StandardCharacterCard | null {
+export function normalizeStandardCard(value: unknown): StandardCard | null {
   if (!isRecord(value)) return null;
   if (value.spec !== "chara_card_v2" && value.spec !== "chara_card_v3") return null;
   if (!isRecord(value.data)) return null;
   if (!text(value.data.name)) return null;
-  return value as StandardCharacterCard;
+  return value as StandardCard;
 }
 
-export function getCharacterName(character: StandardCharacterCard): string {
+export function getCharacterName(character: StandardCard): string {
   return text(character.data.name);
 }
 
-export function getCharacterFirstMessage(character: StandardCharacterCard): string {
+export function getCharacterFirstMessage(character: StandardCard): string {
   return text(character.data.first_mes);
 }
 
-export function getOpeningUserChoices(character: StandardCharacterCard): string[] {
+export function getOpeningUserChoices(character: StandardCard): string[] {
   if (character.spec === "chara_card_v3") {
     return textArray(character.data.group_only_greetings);
   }
@@ -44,7 +44,7 @@ export function getOpeningUserChoices(character: StandardCharacterCard): string[
 }
 
 export function buildCharacterPromptParts(
-  character: StandardCharacterCard,
+  character: StandardCard,
   context: PromptContext = {},
 ): CharacterPromptParts {
   const data = character.data;
@@ -61,7 +61,7 @@ export function buildCharacterPromptParts(
 }
 
 export function matchCharacterBookEntries(
-  character: StandardCharacterCard,
+  character: StandardCard,
   context: PromptContext = {},
 ): string[] {
   const haystack = contextText(context.messages ?? []);
@@ -71,7 +71,7 @@ export function matchCharacterBookEntries(
     .map((entry) => entry.content);
 }
 
-function normalizedCharacterBookEntries(character: StandardCharacterCard): NormalizedBookEntry[] {
+function normalizedCharacterBookEntries(character: StandardCard): NormalizedBookEntry[] {
   const book = record(character.data.character_book);
   const entries = Array.isArray(book.entries) ? book.entries : [];
 

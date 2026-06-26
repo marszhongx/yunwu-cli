@@ -1,8 +1,12 @@
-import type { LorebookEntry } from "@/types";
-
 type Match = {
   content: string;
   keys: string[];
+};
+
+export type NormalizedLorebookEntry = {
+  keys: string[];
+  content: string;
+  enabled: boolean;
 };
 
 type MatchLorebookOptions<T extends boolean = boolean> = {
@@ -24,7 +28,7 @@ export function normalizeKeys(keys: unknown): string[] {
   return [];
 }
 
-export function normalizeLorebookEntries(entries: unknown): LorebookEntry[] {
+export function normalizeLorebookEntries(entries: unknown): NormalizedLorebookEntry[] {
   if (!Array.isArray(entries)) return [];
 
   return entries.flatMap((entry) => {
@@ -40,14 +44,17 @@ export function normalizeLorebookEntries(entries: unknown): LorebookEntry[] {
 }
 
 export function matchLorebook(
-  entries: LorebookEntry[],
+  entries: NormalizedLorebookEntry[],
   options: MatchLorebookOptions<true>,
 ): { contents: string[]; matches: Match[] };
 export function matchLorebook(
-  entries: LorebookEntry[],
+  entries: NormalizedLorebookEntry[],
   options?: MatchLorebookOptions<false>,
 ): string[];
-export function matchLorebook(entries: LorebookEntry[], options: MatchLorebookOptions = {}) {
+export function matchLorebook(
+  entries: NormalizedLorebookEntry[],
+  options: MatchLorebookOptions = {},
+) {
   const matches = entries.flatMap((entry) => {
     if (!entry.enabled) return [];
     return [{ content: entry.content, keys: normalizeKeys(entry.keys) }];

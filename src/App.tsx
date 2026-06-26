@@ -14,7 +14,7 @@ import {
   type ListedCharacter,
   type ListedChat,
 } from "@/services/fileStorage";
-import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 type Mode = "chat" | "character-select" | "chat-select";
 
@@ -43,7 +43,7 @@ export default function App({
   const [error, setError] = useState("");
   const [input, setInput] = useState("");
   const [chat, setChat] = useState<ChatMetadata | null>(null);
-  const [character, setCharacter] = useState<StandardCharacterCard | null>(null);
+  const [character, setCharacter] = useState<StandardCard | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [generating, setGenerating] = useState(false);
   const activeChoices = useMemo(() => latestChoices(messages), [messages]);

@@ -5,7 +5,7 @@ import TextInput from "ink-text-input";
 import { MessageItem } from "@/components/MessageItem";
 import { getCharacterName } from "@/lib/characterCards";
 import { parseMessage } from "@/lib/messages";
-import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 type ChatScreenProps = {
   config: CliConfig | null;
@@ -13,7 +13,7 @@ type ChatScreenProps = {
   warnings: string[];
   error: string;
   chat: ChatMetadata | null;
-  character: StandardCharacterCard | null;
+  character: StandardCard | null;
   messages: ChatMessage[];
   generating: boolean;
   input: string;
