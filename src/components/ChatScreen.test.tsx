@@ -3,7 +3,7 @@ import { render } from "ink-testing-library";
 import { afterEach, expect, test, vi } from "vitest";
 
 import { ChatScreen } from "@/components/ChatScreen";
-import type { ChatMessage, ChatMetadata, CharacterCard, CliConfig } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -150,22 +150,24 @@ function chat(): ChatMetadata {
   };
 }
 
-function character(): CharacterCard {
+function character(): StandardCharacterCard {
   return {
-    id: "char-1",
-    name: "云雀",
-    description: "山间角色",
-    first_mes: "你好。",
-    personality: "温和",
-    scenario: "山间",
-    mes_example: "",
-    alternate_greetings: [],
-    opening_user_choices: [],
-    entries: [],
-    creator_notes: "",
-    tags: [],
-    creator: "",
-    character_version: "",
+    spec: "chara_card_v2",
+    data: {
+      name: "云雀",
+      description: "山间角色",
+      first_mes: "你好。",
+      personality: "温和",
+      scenario: "山间",
+      mes_example: "",
+      alternate_greetings: [],
+      opening_user_choices: [],
+      character_book: { entries: [] },
+      creator_notes: "",
+      tags: [],
+      creator: "",
+      character_version: "",
+    },
   };
 }
 

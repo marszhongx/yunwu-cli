@@ -4,7 +4,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import App from "@/App";
 import { readCharacters, readChatMetadataList, readCliConfig } from "@/services/fileStorage";
 import { createNewChat, resumeChat, sendChatMessage } from "@/services/chatRuntime";
-import type { CharacterCard, ChatMessage, ChatMetadata, CliConfig } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCharacterCard } from "@/types";
 
 vi.mock("@/services/fileStorage", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/fileStorage")>();
@@ -415,8 +415,9 @@ function config(): CliConfig {
   };
 }
 
-function listedCharacter(overrides: Partial<CharacterCard> = {}) {
+function listedCharacter(overrides: Partial<StandardCharacterCard["data"]> = {}) {
   return {
+    id: "char-1",
     fileName: "char-1.json",
     character: character(overrides),
   };
@@ -437,23 +438,25 @@ function listedChat(overrides: Partial<ChatMetadata> = {}) {
   };
 }
 
-function character(overrides: Partial<CharacterCard> = {}): CharacterCard {
+function character(overrides: Partial<StandardCharacterCard["data"]> = {}): StandardCharacterCard {
   return {
-    id: "char-1",
-    name: "云雀",
-    description: "山间角色",
-    first_mes: "你好。",
-    personality: "温和",
-    scenario: "山间",
-    mes_example: "",
-    alternate_greetings: [],
-    opening_user_choices: [],
-    entries: [],
-    creator_notes: "",
-    tags: [],
-    creator: "",
-    character_version: "",
-    ...overrides,
+    spec: "chara_card_v2",
+    data: {
+      name: "云雀",
+      description: "山间角色",
+      first_mes: "你好。",
+      personality: "温和",
+      scenario: "山间",
+      mes_example: "",
+      alternate_greetings: [],
+      opening_user_choices: [],
+      character_book: { entries: [] },
+      creator_notes: "",
+      tags: [],
+      creator: "",
+      character_version: "",
+      ...overrides,
+    },
   };
 }
 
