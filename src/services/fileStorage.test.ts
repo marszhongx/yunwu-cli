@@ -167,6 +167,20 @@ describe("fileStorage", () => {
     ).toBeDefined();
   });
 
+  test("readCharacters skips .json because it would derive an empty character id", async () => {
+    const rootDir = await makeRootDir();
+    const paths = await ensureDataDirs(rootDir);
+    await writeFile(
+      join(paths.charactersDir, ".json"),
+      JSON.stringify({ spec: "chara_card_v2", spec_version: "2.0", data: { name: "No ID" } }),
+    );
+
+    const result = await readCharacters(rootDir);
+
+    expect(result.characters).toEqual([]);
+    expect(result.warnings).toEqual(["Skipped .json: invalid character filename"]);
+  });
+
   test("readCharacters preserves standard card fields without rewriting to internal shape", async () => {
     const rootDir = await makeRootDir();
     const paths = await ensureDataDirs(rootDir);

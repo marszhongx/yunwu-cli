@@ -87,7 +87,12 @@ export async function readCharacters(
         warnings.push(`Skipped ${fileName}: unsupported character card format`);
         continue;
       }
-      characters.push({ id: characterIdFromFileName(fileName), fileName, character });
+      const id = characterIdFromFileName(fileName);
+      if (id === "") {
+        warnings.push(`Skipped ${fileName}: invalid character filename`);
+        continue;
+      }
+      characters.push({ id, fileName, character });
     } catch (error) {
       warnings.push(`Skipped ${fileName}: ${errorMessage(error)}`);
     }
