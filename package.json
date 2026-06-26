@@ -1,6 +1,6 @@
 {
   "name": "yunwu-cli",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Terminal-based AI roleplay chat app powered by Ink.",
   "keywords": [
     "ai",
@@ -37,8 +37,8 @@
     "prepublishOnly": "npm run check && npm run build"
   },
   "dependencies": {
-    "@tanstack/ai": "^0.34.0",
-    "@tanstack/ai-openai": "^0.15.4",
+    "@tanstack/ai": "^0.37.0",
+    "@tanstack/ai-openai": "^0.15.8",
     "ink": "^6.8.0",
     "ink-select-input": "^6.2.0",
     "ink-text-input": "^6.0.0",
