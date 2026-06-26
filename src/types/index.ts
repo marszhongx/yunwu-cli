@@ -15,32 +15,64 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export type LorebookEntry = {
-  keys: string[];
-  content: string;
-  enabled: boolean;
+export type CharacterBookEntry = {
+  keys?: unknown;
+  key?: unknown;
+  content?: unknown;
+  enabled?: unknown;
+  insertion_order?: unknown;
+  case_sensitive?: unknown;
+  name?: unknown;
+  priority?: unknown;
+  id?: unknown;
+  selective?: unknown;
+  secondary_keys?: unknown;
+  constant?: unknown;
+  position?: unknown;
+  extensions?: unknown;
 };
 
-export type CharacterCard = {
-  id: string;
-  name: string;
-  description: string;
-  first_mes: string;
-  personality: string;
-  scenario: string;
-  mes_example: string;
-  alternate_greetings: string[];
-  opening_user_choices: string[];
-  entries: LorebookEntry[];
-  creator_notes: string;
-  tags: string[];
-  creator: string;
-  character_version: string;
-  avatar?: string;
-  extensions?: Record<string, unknown>;
-  createdAt?: string;
-  updatedAt?: string;
+export type CharacterBook = {
+  name?: unknown;
+  entries?: unknown;
 };
+
+export type CharaCardData = {
+  name?: unknown;
+  description?: unknown;
+  personality?: unknown;
+  scenario?: unknown;
+  first_mes?: unknown;
+  mes_example?: unknown;
+  creator_notes?: unknown;
+  system_prompt?: unknown;
+  post_history_instructions?: unknown;
+  alternate_greetings?: unknown;
+  group_only_greetings?: unknown;
+  opening_user_choices?: unknown;
+  tags?: unknown;
+  creator?: unknown;
+  character_version?: unknown;
+  avatar?: unknown;
+  extensions?: unknown;
+  character_book?: unknown;
+};
+
+export type CharaCardV2 = {
+  spec: "chara_card_v2";
+  spec_version?: unknown;
+  data: CharaCardData;
+};
+
+export type CharaCardV3 = {
+  spec: "chara_card_v3";
+  spec_version?: unknown;
+  data: CharaCardData;
+};
+
+export type StandardCard = CharaCardV2 | CharaCardV3;
+
+export type CharacterPromptParts = string[];
 
 export type ChatMetadata = {
   id: string;

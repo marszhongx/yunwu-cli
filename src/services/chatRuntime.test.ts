@@ -17,7 +17,7 @@ import {
   readChatMessages,
   writeChatMetadata,
 } from "@/services/fileStorage";
-import type { CharacterCard, ChatMessage, ChatMetadata, CliConfig } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 const tempDirs: string[] = [];
 
@@ -32,24 +32,25 @@ afterEach(async () => {
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
-const character: CharacterCard = {
-  id: "char-1",
-  name: "Misty Guide",
-  description: "A guide from the fogbound city.",
-  first_mes: "Welcome to the fog.",
-  personality: "Careful and curious.",
-  scenario: "The user arrives at an abandoned station.",
-  mes_example: "User: Hello\nGuide: The mist answers.",
-  alternate_greetings: [],
-  opening_user_choices: [],
-  entries: [
-    { keys: ["station"], content: "The station appears under a full moon.", enabled: true },
-    { keys: ["sealed"], content: "Disabled entry", enabled: false },
-  ],
-  creator_notes: "",
-  tags: [],
-  creator: "test",
-  character_version: "1",
+const character: StandardCard = {
+  spec: "chara_card_v2",
+  spec_version: "2.0",
+  data: {
+    name: "Misty Guide",
+    description: "A guide from the fogbound city.",
+    first_mes: "Welcome to the fog.",
+    personality: "Careful and curious.",
+    scenario: "The user arrives at an abandoned station.",
+    mes_example: "User: Hello\nGuide: The mist answers.",
+    system_prompt: "Keep the narration eerie.",
+    post_history_instructions: "Remember the station layout.",
+    character_book: {
+      entries: [
+        { keys: ["station"], content: "The station appears under a full moon.", enabled: true },
+        { keys: ["sealed"], content: "Disabled entry", enabled: false },
+      ],
+    },
+  },
 };
 
 const config: CliConfig = {
@@ -64,6 +65,7 @@ describe("chat runtime", () => {
 
     const state = await createNewChat({
       rootDir,
+      characterId: "misty-guide",
       character,
       now: () => new Date("2026-06-23T08:09:10.000Z"),
     });
@@ -71,7 +73,7 @@ describe("chat runtime", () => {
     expect(state.warnings).toEqual([]);
     expect(state.chat).toEqual({
       id: expect.stringMatching(/^chat-20260623-080910-[a-z0-9]+$/u),
-      characterId: "char-1",
+      characterId: "misty-guide",
       characterName: "Misty Guide",
       title: "Misty Guide - 2026-06-23 08:09",
       createdAt: "2026-06-23T08:09:10.000Z",
@@ -100,8 +102,8 @@ describe("chat runtime", () => {
     const rootDir = await makeTempDir();
     const now = () => new Date("2026-06-23T08:09:10.000Z");
 
-    const first = await createNewChat({ rootDir, character, now });
-    const second = await createNewChat({ rootDir, character, now });
+    const first = await createNewChat({ rootDir, characterId: "misty-guide", character, now });
+    const second = await createNewChat({ rootDir, characterId: "misty-guide", character, now });
 
     expect(first.chat.id).toMatch(/^chat-20260623-080910-[a-z0-9]+$/u);
     expect(second.chat.id).toMatch(/^chat-20260623-080910-[a-z0-9]+$/u);
@@ -120,6 +122,7 @@ describe("chat runtime", () => {
     const rootDir = await makeTempDir();
     const created = await createNewChat({
       rootDir,
+      characterId: "misty-guide",
       character,
       now: () => new Date("2026-06-23T08:09:10.000Z"),
     });
@@ -143,6 +146,7 @@ describe("chat runtime", () => {
     const rootDir = await makeTempDir();
     const created = await createNewChat({
       rootDir,
+      characterId: "misty-guide",
       character,
       now: () => new Date("2026-06-23T08:09:10.000Z"),
     });
@@ -171,11 +175,13 @@ describe("chat runtime", () => {
       messages: [
         expect.objectContaining({ role: "system" }),
         expect.objectContaining({ role: "system" }),
+        { role: "system", content: "Keep the narration eerie." },
         { role: "system", content: "A guide from the fogbound city." },
         { role: "system", content: "Careful and curious." },
         { role: "system", content: "The user arrives at an abandoned station." },
         { role: "system", content: "The station appears under a full moon." },
         { role: "system", content: "User: Hello\nGuide: The mist answers." },
+        { role: "system", content: "Remember the station layout." },
         { role: "assistant", content: "Welcome to the fog." },
         { role: "user", content: "I enter the station." },
       ],
@@ -212,6 +218,7 @@ describe("chat runtime", () => {
     const rootDir = await makeTempDir();
     const created = await createNewChat({
       rootDir,
+      characterId: "misty-guide",
       character,
       now: () => new Date("2026-06-23T08:09:10.000Z"),
     });
@@ -244,8 +251,8 @@ describe("chat runtime", () => {
     const rootDir = await makeTempDir();
     const chat: ChatMetadata = {
       id: "chat-existing",
-      characterId: character.id,
-      characterName: character.name,
+      characterId: "misty-guide",
+      characterName: "Misty Guide",
       title: "Existing chat",
       createdAt: "2026-06-23T08:00:00.000Z",
       updatedAt: "2026-06-23T08:00:00.000Z",

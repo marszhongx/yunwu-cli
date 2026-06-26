@@ -40,42 +40,60 @@ Any provider that implements the OpenAI Chat Completions API works, including Op
 
 ## Characters
 
-Place character card JSON files in `.yunwu/characters/`. Each file is one character:
+Place standard Character Card JSON files in `.yunwu/characters/`. Each file must be one of the supported standard card formats:
+
+- `chara_card_v2`
+- `chara_card_v3`
+
+Example v2 card:
 
 ```json
 {
-  "id": "alice",
-  "name": "Alice",
-  "description": "A friendly AI assistant.",
-  "personality": "Cheerful and helpful",
-  "scenario": "A casual conversation",
-  "first_mes": "Hi there! How can I help you today?",
-  "mes_example": "",
-  "alternate_greetings": [],
-  "opening_user_choices": [],
-  "entries": [],
-  "creator_notes": "",
-  "tags": [],
-  "creator": "",
-  "character_version": "1.0"
+  "spec": "chara_card_v2",
+  "spec_version": "2.0",
+  "data": {
+    "name": "Alice",
+    "description": "A friendly AI assistant.",
+    "personality": "Cheerful and helpful",
+    "scenario": "A casual conversation",
+    "first_mes": "Hi there! How can I help you today?",
+    "mes_example": "",
+    "system_prompt": "",
+    "post_history_instructions": "",
+    "alternate_greetings": [],
+    "opening_user_choices": [],
+    "character_book": {
+      "name": "Alice Lorebook",
+      "entries": []
+    },
+    "creator_notes": "",
+    "tags": [],
+    "creator": "",
+    "character_version": "1.0"
+  }
 }
 ```
 
-Character files must use this internal `CharacterCard` JSON shape.
+Yunwu uses the character file name without `.json` as the stable character id stored in chat metadata. For example, `.yunwu/characters/alice.json` becomes character id `alice`. Renaming a character file can prevent older chats from resuming until the file name or chat metadata is restored.
 
 ### Lorebook entries
 
-Characters can include lorebook entries that are injected when keywords match:
+Character book entries are read from `data.character_book.entries` and are injected when their standard matching rules apply:
 
 ```json
 {
-  "entries": [
-    {
-      "keys": ["magic", "spell"],
-      "content": "In this world, magic is powered by crystallized moonlight.",
-      "enabled": true
-    }
-  ]
+  "character_book": {
+    "entries": [
+      {
+        "keys": ["magic", "spell"],
+        "content": "In this world, magic is powered by crystallized moonlight.",
+        "enabled": true,
+        "constant": false,
+        "selective": false,
+        "secondary_keys": []
+      }
+    ]
+  }
 }
 ```
 

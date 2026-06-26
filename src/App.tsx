@@ -14,7 +14,7 @@ import {
   type ListedCharacter,
   type ListedChat,
 } from "@/services/fileStorage";
-import type { ChatMessage, ChatMetadata, CharacterCard, CliConfig } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 type Mode = "chat" | "character-select" | "chat-select";
 
@@ -43,7 +43,7 @@ export default function App({
   const [error, setError] = useState("");
   const [input, setInput] = useState("");
   const [chat, setChat] = useState<ChatMetadata | null>(null);
-  const [character, setCharacter] = useState<CharacterCard | null>(null);
+  const [character, setCharacter] = useState<StandardCard | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [generating, setGenerating] = useState(false);
   const activeChoices = useMemo(() => latestChoices(messages), [messages]);
@@ -289,7 +289,11 @@ export default function App({
     setError("");
     try {
       const { createNewChat } = await import("@/services/chatRuntime");
-      const nextState = await createNewChat({ rootDir, character: item.character });
+      const nextState = await createNewChat({
+        rootDir,
+        characterId: item.id,
+        character: item.character,
+      });
       setChat(nextState.chat);
       setCharacter(item.character);
       setMessages(nextState.messages);
@@ -307,7 +311,7 @@ export default function App({
   async function selectChat(item: ListedChat) {
     setError("");
     const matchingCharacter = characters.find(
-      (candidate) => candidate.character.id === item.chat.characterId,
+      (candidate) => candidate.id === item.chat.characterId,
     )?.character;
     if (!matchingCharacter) {
       setError(`Missing character for chat: ${item.chat.characterName}`);

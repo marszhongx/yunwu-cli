@@ -161,86 +161,110 @@ describe("fileStorage", () => {
     });
   });
 
-  test("readCharacters requires both id and name", async () => {
+  test("readCharacters accepts standard v2 and v3 cards and derives ids from filenames", async () => {
     const rootDir = await makeRootDir();
     const paths = await ensureDataDirs(rootDir);
     await writeFile(
-      join(paths.charactersDir, "missing-id.json"),
-      JSON.stringify({ name: "No ID" }),
+      join(paths.charactersDir, "misty-guide.json"),
+      JSON.stringify({ spec: "chara_card_v2", spec_version: "2.0", data: { name: "Misty Guide" } }),
     );
     await writeFile(
-      join(paths.charactersDir, "missing-name.json"),
-      JSON.stringify({ id: "char-no-name" }),
+      join(paths.charactersDir, "v3-guide.json"),
+      JSON.stringify({ spec: "chara_card_v3", spec_version: "3.0", data: { name: "V3 Guide" } }),
     );
 
     const result = await readCharacters(rootDir);
 
-    expect(result.characters).toEqual([]);
-    expect(result.warnings).toEqual([
-      "Skipped missing-id.json: invalid character card",
-      "Skipped missing-name.json: invalid character card",
+    expect(result.warnings).toEqual([]);
+    expect(result.characters).toEqual([
+      {
+        id: "misty-guide",
+        fileName: "misty-guide.json",
+        character: { spec: "chara_card_v2", spec_version: "2.0", data: { name: "Misty Guide" } },
+      },
+      {
+        id: "v3-guide",
+        fileName: "v3-guide.json",
+        character: { spec: "chara_card_v3", spec_version: "3.0", data: { name: "V3 Guide" } },
+      },
     ]);
   });
 
-  test("readCharacters reads character JSON, normalizes minimal cards, and skips bad JSON with a warning", async () => {
+  test("readCharacters skips old internal, v1, nameless, and bad JSON files", async () => {
     const rootDir = await makeRootDir();
     const paths = await ensureDataDirs(rootDir);
     await writeFile(
-      join(paths.charactersDir, "alice.json"),
-      JSON.stringify({ id: "char-1", name: "Alice" }),
+      join(paths.charactersDir, "internal.json"),
+      JSON.stringify({ id: "char-1", name: "Internal" }),
+    );
+    await writeFile(join(paths.charactersDir, "v1.json"), JSON.stringify({ name: "V1" }));
+    await writeFile(
+      join(paths.charactersDir, "nameless-v2.json"),
+      JSON.stringify({ spec: "chara_card_v2", data: { name: "   " } }),
     );
     await writeFile(join(paths.charactersDir, "broken.json"), "{bad json");
 
     const result = await readCharacters(rootDir);
 
-    expect(result.characters).toEqual([
-      {
-        fileName: "alice.json",
-        character: {
-          id: "char-1",
-          name: "Alice",
-          description: "",
-          first_mes: "",
-          personality: "",
-          scenario: "",
-          mes_example: "",
-          alternate_greetings: [],
-          opening_user_choices: [],
-          entries: [],
-          creator_notes: "",
-          tags: [],
-          creator: "",
-          character_version: "",
-        },
-      },
-    ]);
-    expect(result.warnings).toHaveLength(1);
-    expect(result.warnings[0]).toMatch(/^Skipped broken\.json:/);
+    expect(result.characters).toEqual([]);
+    expect(result.warnings).toHaveLength(4);
+    expect(result.warnings).toContain("Skipped internal.json: unsupported character card format");
+    expect(result.warnings).toContain("Skipped v1.json: unsupported character card format");
+    expect(result.warnings).toContain(
+      "Skipped nameless-v2.json: unsupported character card format",
+    );
+    expect(
+      result.warnings.find((warning) => warning.startsWith("Skipped broken.json:")),
+    ).toBeDefined();
   });
 
-  test("readCharacters preserves freeform character whitespace", async () => {
+  test("readCharacters skips .json because it would derive an empty character id", async () => {
     const rootDir = await makeRootDir();
     const paths = await ensureDataDirs(rootDir);
     await writeFile(
-      join(paths.charactersDir, "alice.json"),
+      join(paths.charactersDir, ".json"),
+      JSON.stringify({ spec: "chara_card_v2", spec_version: "2.0", data: { name: "No ID" } }),
+    );
+
+    const result = await readCharacters(rootDir);
+
+    expect(result.characters).toEqual([]);
+    expect(result.warnings).toEqual(["Skipped .json: invalid character filename"]);
+  });
+
+  test("readCharacters preserves standard card fields without rewriting to internal shape", async () => {
+    const rootDir = await makeRootDir();
+    const paths = await ensureDataDirs(rootDir);
+    await writeFile(
+      join(paths.charactersDir, "full.json"),
       JSON.stringify({
-        id: "char-1",
-        name: "Alice",
-        description: "  description with intentional padding  ",
-        first_mes: "\n  hello with surrounding whitespace  \n",
-        entries: [{ keys: ["greeting"], content: "  lore content  " }],
+        spec: "chara_card_v2",
+        spec_version: "2.0",
+        data: {
+          name: "Full Card",
+          system_prompt: "  prompt padding stays inside original card  ",
+          character_book: {
+            entries: [{ keys: ["greeting"], content: "  lore content  " }],
+          },
+          extensions: { untouched: true },
+        },
       }),
     );
 
     const result = await readCharacters(rootDir);
 
-    expect(result.characters[0]?.character.description).toBe(
-      "  description with intentional padding  ",
-    );
-    expect(result.characters[0]?.character.first_mes).toBe(
-      "\n  hello with surrounding whitespace  \n",
-    );
-    expect(result.characters[0]?.character.entries[0]?.content).toBe("  lore content  ");
+    expect(result.characters[0]?.character).toEqual({
+      spec: "chara_card_v2",
+      spec_version: "2.0",
+      data: {
+        name: "Full Card",
+        system_prompt: "  prompt padding stays inside original card  ",
+        character_book: {
+          entries: [{ keys: ["greeting"], content: "  lore content  " }],
+        },
+        extensions: { untouched: true },
+      },
+    });
   });
 
   test("readChatMetadataList validates required metadata fields", async () => {

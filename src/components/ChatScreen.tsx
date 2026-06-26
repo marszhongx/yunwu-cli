@@ -3,8 +3,9 @@ import { Box, Text } from "ink";
 import TextInput from "ink-text-input";
 
 import { MessageItem } from "@/components/MessageItem";
+import { getCharacterName } from "@/lib/characterCards";
 import { parseMessage } from "@/lib/messages";
-import type { ChatMessage, ChatMetadata, CharacterCard, CliConfig } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 type ChatScreenProps = {
   config: CliConfig | null;
@@ -12,7 +13,7 @@ type ChatScreenProps = {
   warnings: string[];
   error: string;
   chat: ChatMetadata | null;
-  character: CharacterCard | null;
+  character: StandardCard | null;
   messages: ChatMessage[];
   generating: boolean;
   input: string;
@@ -52,7 +53,7 @@ export function ChatScreen({
             <Text color="yellow">[no config]</Text>
           )}
         </Text>
-        {character ? <Text color="magenta">Character: {character.name}</Text> : null}
+        {character ? <Text color="magenta">Character: {getCharacterName(character)}</Text> : null}
       </Box>
 
       {configErrors.length > 0 ? (
@@ -86,7 +87,7 @@ export function ChatScreen({
             <MessageItem
               key={message.id}
               message={message}
-              assistantName={character?.name ?? "assistant"}
+              assistantName={character ? getCharacterName(character) : "assistant"}
               isLatestChoiceMessage={message.id === latestChoiceId}
               activeChoiceIndex={activeChoiceIndex}
             />

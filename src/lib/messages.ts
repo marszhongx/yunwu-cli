@@ -1,6 +1,6 @@
 import { DEFAULT_SYSTEM_PROMPTS, ResponseTag } from "@/constants";
 import { xml2json } from "@/lib/xml";
-import type { CharacterCard, ChatMessage } from "@/types";
+import type { ChatMessage } from "@/types";
 
 export type PromptMessage = {
   role: "system" | "user" | "assistant";
@@ -9,15 +9,13 @@ export type PromptMessage = {
 
 type BuildMessagesOptions = {
   messages?: unknown;
-  charData?: Partial<CharacterCard> | null;
-  lbEntries?: string[];
+  characterPromptParts?: string[];
   systemPrompts?: string[];
 };
 
 export function buildMessages({
   messages = [],
-  charData = null,
-  lbEntries = [],
+  characterPromptParts = [],
   systemPrompts = [],
 }: BuildMessagesOptions = {}): PromptMessage[] {
   const prompts = [
@@ -26,24 +24,10 @@ export function buildMessages({
   ];
   const result: PromptMessage[] = prompts.map((content) => ({ role: "system", content }));
 
-  if (charData?.description) {
-    result.push({ role: "system", content: charData.description });
-  }
-
-  if (charData?.personality) {
-    result.push({ role: "system", content: charData.personality });
-  }
-
-  if (charData?.scenario) {
-    result.push({ role: "system", content: charData.scenario });
-  }
-
-  for (const entry of lbEntries) {
-    result.push({ role: "system", content: entry });
-  }
-
-  if (charData?.mes_example) {
-    result.push({ role: "system", content: charData.mes_example });
+  for (const part of characterPromptParts) {
+    if (part.trim() !== "") {
+      result.push({ role: "system", content: part });
+    }
   }
 
   result.push(...buildHistoryMessages(messages).map(({ role, content }) => ({ role, content })));

@@ -12,17 +12,10 @@ import {
   resolveChoices,
 } from "@/lib/messages";
 
-import type { ChatMessage, CharacterCard } from "@/types";
+import type { ChatMessage } from "@/types";
 
 describe("messages domain", () => {
-  it("buildMessages builds system prompts, character info, lorebook context, and history", () => {
-    const charData: Partial<CharacterCard> = {
-      description: "来自雾中城的旅人",
-      personality: "谨慎而好奇",
-      scenario: "抵达废弃驿站",
-      mes_example: "你：你好\n旁白：雾气回应了你。",
-    };
-
+  it("buildMessages builds default prompts, character prompt parts, and history", () => {
     const messages: ChatMessage[] = [
       { id: "u1", role: "user", content: "推门进入", createdAt: "" },
       {
@@ -35,8 +28,14 @@ describe("messages domain", () => {
 
     const result = buildMessages({
       messages,
-      charData,
-      lbEntries: ["驿站在满月时出现。", "雾都常年笼罩在迷雾中。"],
+      characterPromptParts: [
+        "来自雾中城的旅人",
+        "谨慎而好奇",
+        "抵达废弃驿站",
+        "驿站在满月时出现。",
+        "雾都常年笼罩在迷雾中。",
+        "你：你好\n旁白：雾气回应了你。",
+      ],
     });
 
     expect(result).toEqual([

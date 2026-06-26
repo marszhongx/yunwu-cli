@@ -1,6 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import {
+  buildCharacterPromptParts,
+  getCharacterFirstMessage,
+  getCharacterName,
+} from "@/lib/characterCards";
 import { uuid } from "@/lib/ids";
 import { buildMessages } from "@/lib/messages";
 import { requestAssistantText, type ProviderMessage } from "@/services/aiClient";
@@ -12,7 +17,7 @@ import {
   safeChatFileName,
   writeChatMetadata,
 } from "@/services/fileStorage";
-import type { CharacterCard, ChatMessage, ChatMetadata, CliConfig } from "@/types";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 export type RuntimeState = {
   chat: ChatMetadata;
@@ -30,7 +35,8 @@ type Clock = () => Date;
 
 type CreateNewChatInput = {
   rootDir: string;
-  character: CharacterCard;
+  characterId: string;
+  character: StandardCard;
   now?: Clock;
 };
 
@@ -42,7 +48,7 @@ type ResumeChatInput = {
 type SendChatMessageInput = {
   rootDir: string;
   config: CliConfig;
-  character: CharacterCard;
+  character: StandardCard;
   chat: ChatMetadata;
   messages: ChatMessage[];
   content: string;
@@ -53,16 +59,18 @@ type SendChatMessageInput = {
 
 export async function createNewChat({
   rootDir,
+  characterId,
   character,
   now = () => new Date(),
 }: CreateNewChatInput): Promise<RuntimeState> {
   const createdAt = now().toISOString();
   const id = `chat-${timestampId(createdAt)}-${uuidSegment()}`;
+  const characterName = getCharacterName(character);
   const chat: ChatMetadata = {
     id,
-    characterId: character.id,
-    characterName: character.name,
-    title: `${character.name} - ${titleTimestamp(createdAt)}`,
+    characterId,
+    characterName,
+    title: `${characterName} - ${titleTimestamp(createdAt)}`,
     createdAt,
     updatedAt: createdAt,
   };
@@ -70,7 +78,7 @@ export async function createNewChat({
   await createEmptyMessagesFile(rootDir, id);
 
   const messages: ChatMessage[] = [];
-  const opening = character.first_mes.trim();
+  const opening = getCharacterFirstMessage(character).trim();
   if (opening !== "") {
     const openingMessage: ChatMessage = {
       id: uuid(),
@@ -119,8 +127,7 @@ export async function sendChatMessage({
     config,
     messages: buildMessages({
       messages: withUser,
-      charData: character,
-      lbEntries: character.entries.filter((entry) => entry.enabled).map((entry) => entry.content),
+      characterPromptParts: buildCharacterPromptParts(character, { messages: withUser }),
       systemPrompts: config.systemPrompts,
     }),
     onText: onAssistantText,

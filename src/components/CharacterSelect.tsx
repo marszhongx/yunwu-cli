@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Text } from "ink";
 import SelectInput from "ink-select-input";
 
+import { getCharacterName } from "@/lib/characterCards";
 import type { ListedCharacter } from "@/services/fileStorage";
 
 type CharacterSelectProps = {
@@ -16,7 +17,7 @@ type SelectItem = {
 
 export function CharacterSelect({ characters, onSelect }: CharacterSelectProps) {
   const items: SelectItem[] = characters.map((item) => ({
-    label: `${item.character.name} (${item.fileName})`,
+    label: `${getCharacterName(item.character)} (${item.fileName})`,
     value: item,
   }));
 

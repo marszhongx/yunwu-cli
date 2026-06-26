@@ -1,10 +1,12 @@
 import { appendFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
-import type { CharacterCard, ChatMessage, ChatMetadata, CliConfig, LorebookEntry } from "@/types";
+import { normalizeStandardCard } from "@/lib/characterCards";
+import type { ChatMessage, ChatMetadata, CliConfig, StandardCard } from "@/types";
 
 export type ListedCharacter = {
+  id: string;
   fileName: string;
-  character: CharacterCard;
+  character: StandardCard;
 };
 
 export type ListedChat = {
@@ -80,18 +82,27 @@ export async function readCharacters(
       const parsed: unknown = JSON.parse(
         await readFile(join(paths.charactersDir, fileName), "utf8"),
       );
-      const character = normalizeCharacterCard(parsed);
+      const character = normalizeStandardCard(parsed);
       if (character === null) {
-        warnings.push(`Skipped ${fileName}: invalid character card`);
+        warnings.push(`Skipped ${fileName}: unsupported character card format`);
         continue;
       }
-      characters.push({ fileName, character });
+      const id = characterIdFromFileName(fileName);
+      if (id === "") {
+        warnings.push(`Skipped ${fileName}: invalid character filename`);
+        continue;
+      }
+      characters.push({ id, fileName, character });
     } catch (error) {
       warnings.push(`Skipped ${fileName}: ${errorMessage(error)}`);
     }
   }
 
   return { characters, warnings };
+}
+
+function characterIdFromFileName(fileName: string): string {
+  return fileName.replace(/\.json$/u, "");
 }
 
 export async function readChatMetadataList(
@@ -216,52 +227,6 @@ function normalizeCliConfig(value: unknown): CliConfig | null {
   return config;
 }
 
-function normalizeCharacterCard(value: unknown): CharacterCard | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-  const id = stringValue(value.id);
-  const name = stringValue(value.name);
-  if (!id || !name) {
-    return null;
-  }
-
-  const character: CharacterCard = {
-    id,
-    name,
-    description: exactStringValue(value.description) ?? "",
-    first_mes: exactStringValue(value.first_mes) ?? "",
-    personality: exactStringValue(value.personality) ?? "",
-    scenario: exactStringValue(value.scenario) ?? "",
-    mes_example: exactStringValue(value.mes_example) ?? "",
-    alternate_greetings: stringArrayValue(value.alternate_greetings),
-    opening_user_choices: stringArrayValue(value.opening_user_choices),
-    entries: lorebookEntriesValue(value.entries),
-    creator_notes: exactStringValue(value.creator_notes) ?? "",
-    tags: stringArrayValue(value.tags),
-    creator: stringValue(value.creator) ?? "",
-    character_version: stringValue(value.character_version) ?? "",
-  };
-
-  const avatar = stringValue(value.avatar);
-  if (avatar !== undefined) {
-    character.avatar = avatar;
-  }
-  if (isRecord(value.extensions)) {
-    character.extensions = value.extensions;
-  }
-  const createdAt = stringValue(value.createdAt);
-  if (createdAt !== undefined) {
-    character.createdAt = createdAt;
-  }
-  const updatedAt = stringValue(value.updatedAt);
-  if (updatedAt !== undefined) {
-    character.updatedAt = updatedAt;
-  }
-
-  return character;
-}
-
 function normalizeChatMetadata(value: unknown): ChatMetadata | null {
   if (!isRecord(value)) {
     return null;
@@ -289,34 +254,6 @@ function normalizeChatMessage(value: unknown): ChatMessage | null {
     return null;
   }
   return { id, role: value.role, content, createdAt };
-}
-
-function lorebookEntriesValue(value: unknown): LorebookEntry[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value.flatMap((entry) => {
-    if (!isRecord(entry)) {
-      return [];
-    }
-    const content = exactStringValue(entry.content);
-    if (content === undefined) {
-      return [];
-    }
-    return [
-      {
-        keys: stringArrayValue(entry.keys),
-        content,
-        enabled: typeof entry.enabled === "boolean" ? entry.enabled : true,
-      },
-    ];
-  });
-}
-
-function stringArrayValue(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
 }
 
 function nonBlankStringArrayValue(value: unknown): string[] {
